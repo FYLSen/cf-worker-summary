@@ -67,16 +67,74 @@ class RequestHandler {
         await cache.initialize();
 
         const cachedResult = await cache.get(articleUrl, langCode);
-        if (cachedResult) {
-            if (this.shouldUpdateCache(cachedResult.created_at)) {
-                this.ctx.waitUntil(this.updateCache(articleUrl, langCode));
-            }
+        const lockManager = new LockManager(this.env.KV);
+        
+        // Case 1: Valid cache exists
+        if (cachedResult && !this.shouldUpdateCache(cachedResult.created_at)) {
             return this.successResponse(cachedResult);
         }
 
-        const result = await this.generateNewSummary(articleUrl, langCode);
-        await cache.set(articleUrl, result.summary, result.model, langCode);
-        return this.successResponse(result);
+        // Case 2: Cache needs update or doesn't exist
+        const cacheKey = `${articleUrl}:${langCode}`;
+        const isLocked = await lockManager.isLocked(cacheKey);
+
+        // If cache exists but needs update, return stale data first
+        if (cachedResult) {
+            // If another process is already updating, just return cached result
+            if (isLocked) {
+                return this.successResponse(cachedResult);
+            }
+            
+            // Try to acquire lock and update in background
+            if (await lockManager.acquireLock(cacheKey)) {
+                this.ctx.waitUntil(this.updateCacheWithLock(articleUrl, langCode, lockManager, cacheKey));
+                return this.successResponse(cachedResult);
+            } else {
+                // If failed to acquire lock, another process just got it
+                return this.successResponse(cachedResult);
+            }
+        }
+
+        // Case 3: No cache exists
+        if (isLocked) {
+            // Wait for a short time and try to get the newly generated result
+            for (let i = 0; i < 3; i++) {
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                const newResult = await cache.get(articleUrl, langCode);
+                if (newResult) {
+                    return this.successResponse(newResult);
+                }
+            }
+            // If still no result, return error
+            return this.errorResponse("Summary generation in progress, please try again later", 503);
+        }
+
+        // Try to acquire lock and generate new summary
+        if (await lockManager.acquireLock(cacheKey)) {
+            try {
+                const result = await this.generateNewSummary(articleUrl, langCode);
+                await cache.set(articleUrl, result.summary, result.model, langCode);
+                await lockManager.releaseLock(cacheKey);
+                return this.successResponse(result);
+            } catch (error) {
+                await lockManager.releaseLock(cacheKey);
+                throw error;
+            }
+        } else {
+            return this.errorResponse("Summary generation in progress, please try again later", 503);
+        }
+    }
+
+
+    async updateCacheWithLock(articleUrl, langCode, lockManager, cacheKey) {
+        try {
+            const result = await this.generateNewSummary(articleUrl, langCode);
+            await new CacheManager(this.env.DB).set(articleUrl, result.summary, result.model, langCode);
+        } catch (error) {
+            console.error('Cache update error:', error);
+        } finally {
+            await lockManager.releaseLock(cacheKey);
+        }
     }
 
     shouldUpdateCache(createdAt) {
@@ -117,6 +175,33 @@ class RequestHandler {
     }
 }
 
+class LockManager {
+    constructor(kv) {
+        this.kv = kv;
+        this.LOCK_TTL = 300; // 5 minutes in seconds
+    }
+
+    async acquireLock(key) {
+        const lockKey = `lock:${key}`;
+        const success = await this.kv.put(lockKey, Date.now().toString(), {
+            expiration: Math.floor(Date.now() / 1000) + this.LOCK_TTL,
+            metadata: { owner: crypto.randomUUID() },
+            hasOwnProperty: false
+        });
+        return success !== null;
+    }
+
+    async releaseLock(key) {
+        const lockKey = `lock:${key}`;
+        await this.kv.delete(lockKey);
+    }
+
+    async isLocked(key) {
+        const lockKey = `lock:${key}`;
+        const lock = await this.kv.get(lockKey);
+        return lock !== null;
+    }
+}
 class LanguageHelper {
     static getPreferredLanguage(acceptLanguageHeader) {
         if (!acceptLanguageHeader) return null;
