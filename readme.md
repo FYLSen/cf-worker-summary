@@ -84,13 +84,12 @@ Used for caching generated summaries.
 2. Create the required table using the following SQL statement:
    ```sql
    CREATE TABLE IF NOT EXISTS summaries (
-     id INTEGER PRIMARY KEY AUTOINCREMENT,
      article_url TEXT NOT NULL,
      summary TEXT NOT NULL,
      model TEXT NOT NULL,
      language TEXT NOT NULL,
      created_at INTEGER NOT NULL,
-     UNIQUE(article_url, language)
+     PRIMARY KEY (article_url, language)
    );
    ```
 3. In your Worker‘s settings, add a D1 Database binding.
@@ -132,8 +131,8 @@ The API will return a JSON response with the following structure:
 
 ```json
 {
-  ”summary“: ”The generated summary of the article“,
-  ”model“: ”The AI model used for summarization“
+  "summary": "The generated summary of the article",
+  "model": "The AI model used for summarization"
 }
 ```
 

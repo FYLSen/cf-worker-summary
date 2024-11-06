@@ -84,13 +84,12 @@
 2. 使用以下 SQL 语句创建所需的表：
    ```sql
    CREATE TABLE IF NOT EXISTS summaries (
-     id INTEGER PRIMARY KEY AUTOINCREMENT,
      article_url TEXT NOT NULL,
      summary TEXT NOT NULL,
      model TEXT NOT NULL,
      language TEXT NOT NULL,
      created_at INTEGER NOT NULL,
-     UNIQUE(article_url, language)
+     PRIMARY KEY (article_url, language)
    );
    ```
 3. 在您的 Worker 设置中，添加一个 D1 数据库绑定。
@@ -132,8 +131,8 @@ API 将返回一个 JSON 响应，结构如下：
 
 ```json
 {
-  ”summary“: ”生成的文章摘要“,
-  ”model“: ”用于摘要的 AI 模型“
+  "summary": "生成的文章摘要",
+  "model": "用于摘要的 AI 模型"
 }
 ```
 
