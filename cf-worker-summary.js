@@ -97,16 +97,11 @@ class RequestHandler {
 
         // Case 3: No cache exists
         if (isLocked) {
-            // Wait for a short time and try to get the newly generated result
-            for (let i = 0; i < 3; i++) {
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                const newResult = await cache.get(articleUrl, langCode);
-                if (newResult) {
-                    return this.successResponse(newResult);
-                }
+            // Use exponential backoff to wait for the lock to be released
+            const lockReleased = await this.waitForLockReleaseWithBackoff(cacheKey, lockManager);
+            if (!lockReleased) {
+                return this.errorResponse("Summary generation in progress, please try again later", 503);
             }
-            // If still no result, return error
-            return this.errorResponse("Summary generation in progress, please try again later", 503);
         }
 
         // Try to acquire lock and generate new summary
@@ -125,6 +120,30 @@ class RequestHandler {
         }
     }
 
+    // Exponential backoff to wait for the lock to be released
+    async waitForLockReleaseWithBackoff(cacheKey, lockManager, maxRetries = 5, initialDelay = 100, maxDelay = 5000) {
+        let attempt = 0;
+        let delay = initialDelay;
+
+        while (attempt < maxRetries) {
+            const isLocked = await lockManager.isLocked(cacheKey);
+
+            if (!isLocked) {
+                // The lock has been released, we can proceed
+                return true;
+            }
+
+            // Wait for the current delay duration, then check the lock status again
+            await new Promise(resolve => setTimeout(resolve, delay));
+
+            // Exponentially increase the delay time until the max delay limit is reached
+            delay = Math.min(delay * 2, maxDelay);
+            attempt += 1;
+        }
+
+        // If the max retries are reached and the lock is still held, return false
+        return false;
+    }
 
     async updateCacheWithLock(articleUrl, langCode, lockManager, cacheKey) {
         try {
