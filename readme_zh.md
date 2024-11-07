@@ -38,13 +38,13 @@
 - `PART_SUMMARY_PROMPT`：（可选）用于总结长文章各部分的自定义提示
 - `COMBINE_SUMMARIES_PROMPT`：（可选）用于合并多个摘要的自定义提示
 - `JINA_READER_URL`：（可选）Jina 阅读器服务的 URL（默认：https://r.jina.ai）
-- `LANGUAGE_DETECTOR_URL`：（可选）将 zh-CN 转化为 Chinese (Simplified, China) 的服务链接
 
 ### PROMPT_TEMPLATE
 
 `PROMPT_TEMPLATE` 环境变量允许您自定义发送给 AI 服务的初始提示。如果未设置，将使用默认模板。模板应包括指示 AI 充当精通多种语言的语言专家，擅长阅读和总结内容的说明。
 
 模板中需要包含的关键点：
+
 - 总结可能包含 HTML 标签的文章的说明
 - 内容要求、表达风格和格式的规则
 - 字数要求（使用 `${SUMMARY_MIN_LENGTH}` 占位符）
@@ -57,10 +57,6 @@
 ### COMBINE_SUMMARIES_PROMPT
 
 `COMBINE_SUMMARIES_PROMPT` 环境变量允许您自定义用于合并长文章多个摘要的提示。如果未设置，将使用默认模板。
-
-### TRANSLATION_PROMPT
-
-`TRANSLATION_PROMPT` 环境变量允许您自定义用于将摘要翻译成不同语言的提示。如果未设置，将使用默认模板。
 
 注意：这些提示模板无法在运行时动态修改。它们必须在部署 worker 之前设置为环境变量。
 
@@ -82,6 +78,7 @@
 
 1. 在 Cloudflare D1 控制台中创建一个新的 D1 数据库。
 2. 使用以下 SQL 语句创建所需的表：
+
    ```sql
    CREATE TABLE IF NOT EXISTS summaries (
      article_url TEXT NOT NULL,
@@ -91,7 +88,14 @@
      created_at INTEGER NOT NULL,
      PRIMARY KEY (article_url, language)
    );
+
+   CREATE TABLE IF NOT EXISTS languages (
+     language_code TEXT PRIMARY KEY,
+     language_name TEXT NOT NULL,
+     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+   );
    ```
+
 3. 在您的 Worker 设置中，添加一个 D1 数据库绑定。
 4. 将绑定命名为 `DB`。
 
@@ -123,6 +127,7 @@
 - `lang`：（可选）摘要的语言。如果未提供，将根据 Accept-Language 头部确定，或默认为英语。
 
 示例：
+
 ```
 https://your-worker-url.workers.dev/summary?url=https://example.com/article&lang=zh
 ```
@@ -200,6 +205,7 @@ worker 尝试使用阅读器服务（默认：https://r.jina.ai）获取文章�
 [https://www.gnu.org/licenses/agpl-3.0.html](https://www.gnu.org/licenses/agpl-3.0.html)
 
 ### 主要许可条款
+
 1. 您有运行、研究和修改程序的自由。
 2. 您可以重新分发原始或修改版本的程序副本，前提是您遵守相同的许可证。
 3. 如果您修改此软件以通过网络提供服务，您必须向服务接收者提供您修改的完整源代码。

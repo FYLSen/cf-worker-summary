@@ -38,13 +38,13 @@ The following environment variables need to be set:
 - `PART_SUMMARY_PROMPT`: (Optional) Custom prompt for summarizing parts of long articles
 - `COMBINE_SUMMARIES_PROMPT`: (Optional) Custom prompt for combining multiple summaries
 - `JINA_READER_URL`: (Optional) URL for the Jina reader service (default: https://r.jina.ai)
-- `LANGUAGE_DETECTOR_URL`：（Optional）Translate the service link from zh-CN to Chinese (Simplified, China)
 
 ### PROMPT_TEMPLATE
 
 The `PROMPT_TEMPLATE` environment variable allows you to customize the initial prompt sent to the AI service. If not set, a default template is used. The template should include instructions for the AI to act as a language expert proficient in multiple languages, skilled in reading and summarizing content.
 
 Key points to include in the template:
+
 - Instructions for summarizing articles potentially containing HTML tags
 - Rules for content requirements, expression style, and format
 - Word count requirement (use `${SUMMARY_MIN_LENGTH}` placeholder)
@@ -57,12 +57,6 @@ The `PART_SUMMARY_PROMPT` environment variable allows you to customize the promp
 ### COMBINE_SUMMARIES_PROMPT
 
 The `COMBINE_SUMMARIES_PROMPT` environment variable allows you to customize the prompt used for combining multiple summaries of long articles. If not set, a default template is used.
-
-### TRANSLATION_PROMPT
-
-The `TRANSLATION_PROMPT` environment variable allows you to customize the prompt used for translating summaries to different languages. If not set, a default template is used.
-
-Note: These prompt templates cannot be modified dynamically during runtime. They must be set as environment variables before deploying the worker.
 
 ## Cloudflare Worker Bindings
 
@@ -82,6 +76,7 @@ Used for caching generated summaries.
 
 1. Create a new D1 database in the Cloudflare D1 console.
 2. Create the required table using the following SQL statement:
+
    ```sql
    CREATE TABLE IF NOT EXISTS summaries (
      article_url TEXT NOT NULL,
@@ -91,7 +86,14 @@ Used for caching generated summaries.
      created_at INTEGER NOT NULL,
      PRIMARY KEY (article_url, language)
    );
+
+   CREATE TABLE IF NOT EXISTS languages (
+     language_code TEXT PRIMARY KEY,
+     language_name TEXT NOT NULL,
+     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+   );
    ```
+
 3. In your Worker‘s settings, add a D1 Database binding.
 4. Name the binding `DB`.
 
@@ -123,6 +125,7 @@ To use the API, send a GET request to the worker‘s URL with the following quer
 - `lang`: (Optional) The language for the summary. If not provided, it will be determined based on the Accept-Language header or default to English.
 
 Example:
+
 ```
 https://your-worker-url.workers.dev/summary?url=https://example.com/article&lang=en
 ```
@@ -194,12 +197,13 @@ Contributions to improve the worker are welcome. Please submit issues and pull r
 
 ## License
 
-This project is licensed under the GNU Affero General Public License v3.0 (AGPLv3). You may use, modify, and distribute this software under the terms of the AGPLv3. 
+This project is licensed under the GNU Affero General Public License v3.0 (AGPLv3). You may use, modify, and distribute this software under the terms of the AGPLv3.
 
 The full text of the license can be found in the `LICENSE` file or at the following link:
 [https://www.gnu.org/licenses/agpl-3.0.html](https://www.gnu.org/licenses/agpl-3.0.html)
 
 ### Key License Terms
+
 1. You have the freedom to run, study, and modify the program.
 2. You can redistribute copies of the original or modified versions of the program, provided you comply with the same license.
 3. If you modify this software to offer it as a service over a network, you must make the complete source code of your modifications available to the recipients of the service.

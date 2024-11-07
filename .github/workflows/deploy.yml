@@ -8,60 +8,57 @@ on:
   workflow_dispatch:
 
 jobs:
-
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Generate wrangler.toml
-      run: |
-        cat << EOF > wrangler.toml
-        name = "${{ secrets.CLOUDFLARE_WORKER_NAME }}"
-        type = "javascript"
-        main = "cf-worker-summary.js"
-        compatibility_date = "2024-10-22"
-        workers_dev = false
-        routes = [{ pattern = "${{ secrets.SUMMARY_API }}/summary*", zone_id = "${{ secrets.CLOUDFLARE_ZONE_ID }}" }]
-        [vars]
-        JINA_READER_URL = "${{ secrets.JINA_READER_URL }}"
-        AI_PROVIDER = "${{ secrets.AI_PROVIDER }}"
-        AI_MODEL = "${{ secrets.AI_MODEL }}"
-        AI_API_KEY = "${{ secrets.AI_API_KEY }}"
-        AI_ENDPOINT = "${{ secrets.AI_ENDPOINT }}"
-        ALLOWED_DOMAINS = "${{ secrets.ALLOWED_DOMAINS }}"
-        CACHE_TTL = "${{ secrets.CACHE_TTL }}"
-        RATE_LIMIT = "${{ secrets.RATE_LIMIT }}"
-        MAX_CONTENT_LENGTH = "${{ secrets.MAX_CONTENT_LENGTH }}"
-        SUMMARY_MIN_LENGTH = "${{ secrets.SUMMARY_MIN_LENGTH }}"
-        PART_SIZE = "${{ secrets.PART_SIZE }}"
-        OVERLAP_SIZE = "${{ secrets.OVERLAP_SIZE }}"
-        LANGUAGE_DETECTOR_URL = "${{ secrets.LANGUAGE_DETECTOR_URL }}"
-        #PROMPT_TEMPLATE = "${{ secrets.PROMPT_TEMPLATE }}"
-        #PART_SUMMARY_PROMPT = "${{ secrets.PART_SUMMARY_PROMPT }}"
-        #COMBINE_SUMMARIES_PROMPT = "${{ secrets.COMBINE_SUMMARIES_PROMPT }}"
-        #TRANSLATION_PROMPT = "${{ secrets.TRANSLATION_PROMPT }}"
-        [[kv_namespaces]]
-        binding = "KV"
-        id = "${{ secrets.KV_NAMESPACE_ID }}"
-        [[d1_databases]]
-        binding = "DB"
-        database_name = "${{ secrets.D1_DATABASE_NAME }}"
-        database_id = "${{ secrets.D1_DATABASE_ID }}"
-        [ai]
-        binding = "AI"
-        [observability]
-        enabled = true
-        head_sampling_rate = 1
-        [placement]
-        mode = "smart"
-        EOF
+      - name: Generate wrangler.toml
+        run: |
+          cat << EOF > wrangler.toml
+          name = "${{ secrets.CLOUDFLARE_WORKER_NAME }}"
+          type = "javascript"
+          main = "cf-worker-summary.js"
+          compatibility_date = "2024-10-22"
+          workers_dev = false
+          routes = [{ pattern = "${{ secrets.SUMMARY_API }}/summary*", zone_id = "${{ secrets.CLOUDFLARE_ZONE_ID }}" }]
+          [vars]
+          JINA_READER_URL = "${{ secrets.JINA_READER_URL }}"
+          AI_PROVIDER = "${{ secrets.AI_PROVIDER }}"
+          AI_MODEL = "${{ secrets.AI_MODEL }}"
+          AI_API_KEY = "${{ secrets.AI_API_KEY }}"
+          AI_ENDPOINT = "${{ secrets.AI_ENDPOINT }}"
+          ALLOWED_DOMAINS = "${{ secrets.ALLOWED_DOMAINS }}"
+          CACHE_TTL = "${{ secrets.CACHE_TTL }}"
+          RATE_LIMIT = "${{ secrets.RATE_LIMIT }}"
+          MAX_CONTENT_LENGTH = "${{ secrets.MAX_CONTENT_LENGTH }}"
+          SUMMARY_MIN_LENGTH = "${{ secrets.SUMMARY_MIN_LENGTH }}"
+          PART_SIZE = "${{ secrets.PART_SIZE }}"
+          OVERLAP_SIZE = "${{ secrets.OVERLAP_SIZE }}"
+          #PROMPT_TEMPLATE = "${{ secrets.PROMPT_TEMPLATE }}"
+          #PART_SUMMARY_PROMPT = "${{ secrets.PART_SUMMARY_PROMPT }}"
+          #COMBINE_SUMMARIES_PROMPT = "${{ secrets.COMBINE_SUMMARIES_PROMPT }}"
+          [[kv_namespaces]]
+          binding = "KV"
+          id = "${{ secrets.KV_NAMESPACE_ID }}"
+          [[d1_databases]]
+          binding = "DB"
+          database_name = "${{ secrets.D1_DATABASE_NAME }}"
+          database_id = "${{ secrets.D1_DATABASE_ID }}"
+          [ai]
+          binding = "AI"
+          [observability]
+          enabled = true
+          head_sampling_rate = 1
+          [placement]
+          mode = "smart"
+          EOF
 
-    - name: Deploy to Cloudflare Workers
-      uses: cloudflare/wrangler-action@v3
-      with:
-        apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        command: deploy --var VERSION:${{ github.sha }}
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          command: deploy --var VERSION:${{ github.sha }}
