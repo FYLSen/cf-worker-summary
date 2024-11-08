@@ -188,13 +188,9 @@ class RequestHandler {
     const content = await ContentFetcher.fetch(articleUrl, this.env.JINA_READER_URL)
     const languageDetector = new LanguageDetector(this.env)
     await languageDetector.initDatabase()
-    const languageResult = await languageDetector.getLanguageFromDB(langCode)
-    const language =
-      languageResult.language_name ||
-      (await languageDetector.detectLanguageWithAI(langCode)) ||
-      langCode
+    const { provider, language } = await languageDetector.getLanguage(langCode)
 
-    if (!languageResult && language !== langCode) {
+    if (provider === "AI") {
       this.ctx.waitUntil(languageDetector.saveLanguageToDB(langCode, language))
     }
     const aiService = new AIService(this.env, language)
@@ -284,8 +280,20 @@ class LanguageDetector {
         `
     await this.env.DB.prepare(query).run()
   }
+  
+  async getLanguage(langCode) {
+    const languageResult = await this._getLanguageFromDB(langCode);
+    if (languageResult.language_name) {
+      return { provider: "DB", language: languageResult.language_name };
+    }
+    const detectedLanguage = await this._detectLanguageWithAI(langCode);
+    if (detectedLanguage) {
+      return { provider: "AI", language: detectedLanguage };
+    }
+    return { provider: "", language: langCode };
+  }
 
-  async getLanguageFromDB(langCode) {
+  async _getLanguageFromDB(langCode) {
     const query = `
           SELECT language_name 
           FROM languages 
@@ -299,7 +307,7 @@ class LanguageDetector {
     await this.env.DB.prepare(query).bind(langCode, languageName).run()
   }
 
-  async detectLanguageWithAI(langCode) {
+  async _detectLanguageWithAI(langCode) {
     const prompt = `Your task is to identify and return the language name in English for the given language code: "${langCode}".
     
 Rules:
