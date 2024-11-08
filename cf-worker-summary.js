@@ -61,11 +61,13 @@ class RequestHandler {
 
   async validateRequest(articleUrl) {
     await EnvValidator.validate(this.env)
-    await RateLimiter.check(
-      this.env.KV,
-      this.request.headers.get('CF-Connecting-IP'),
-      this.env.RATE_LIMIT,
-    )
+    if (this.env.RATE_LIMIT) {
+        await RateLimiter.check(
+        this.env.KV,
+        this.request.headers.get('CF-Connecting-IP'),
+        this.env.RATE_LIMIT,
+        )
+    }
     await DomainValidator.validate(articleUrl, this.env.ALLOWED_DOMAINS)
   }
 
@@ -322,7 +324,7 @@ Example responses:
 
 class EnvValidator {
   static async validate(env) {
-    const required = [ 'AI_PROVIDER', 'ALLOWED_DOMAINS', 'AI_MODEL', 'AI_API_KEY', 'CACHE_TTL', 'RATE_LIMIT', 'MAX_CONTENT_LENGTH', 'SUMMARY_MIN_LENGTH', 'AI', 'DB', 'KV', ]
+    const required = [ 'AI_PROVIDER', 'ALLOWED_DOMAINS', 'AI_MODEL', 'AI_API_KEY', 'CACHE_TTL', 'MAX_CONTENT_LENGTH', 'SUMMARY_MIN_LENGTH', 'AI', 'DB', 'KV', ]
 
     const missing = required.filter((key) => !env[key])
     if (missing.length > 0) {

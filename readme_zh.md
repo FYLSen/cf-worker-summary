@@ -29,9 +29,9 @@
 - `AI_ENDPOINT`：（可选）AI API 的自定义端点 URL
 - `ALLOWED_DOMAINS`：允许的文章 URL 域名列表，用逗号分隔
 - `CACHE_TTL`：缓存生存时间（以秒为单位，例如 604800 表示 7 天）
-- `RATE_LIMIT`：每小时每 IP 允许的最大请求数
 - `MAX_CONTENT_LENGTH`：允许处理的文章内容的最大长度
 - `SUMMARY_MIN_LENGTH`：生成摘要的最小长度
+- `RATE_LIMIT`：（可选）每小时每 IP 允许的最大请求数
 - `PART_SIZE`：（可选）长文章内容部分的大小（默认：5000）
 - `OVERLAP_SIZE`：（可选）内容部分之间的重叠大小（默认：200）
 - `PROMPT_TEMPLATE`：（可选）AI 请求的自定义提示模板

@@ -29,9 +29,9 @@ The following environment variables need to be set:
 - `AI_ENDPOINT`: (Optional) Custom endpoint URL for the AI API
 - `ALLOWED_DOMAINS`: Comma-separated list of allowed domains for article URLs
 - `CACHE_TTL`: Cache time-to-live in seconds (e.g., 604800 for 7 days)
-- `RATE_LIMIT`: Maximum number of requests allowed per hour per IP
 - `MAX_CONTENT_LENGTH`: Maximum allowed length of article content to process
 - `SUMMARY_MIN_LENGTH`: Minimum length of generated summaries
+- `RATE_LIMIT`: (Optional) Maximum number of requests allowed per hour per IP
 - `PART_SIZE`: (Optional) Size of content parts for long articles (default: 5000)
 - `OVERLAP_SIZE`: (Optional) Overlap size between content parts (default: 200)
 - `PROMPT_TEMPLATE`: (Optional) Custom prompt template for AI requests
