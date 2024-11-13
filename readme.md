@@ -1,11 +1,11 @@
 # Article Summarizer Cloudflare Worker
 
-This Cloudflare Worker provides an API endpoint for summarizing web articles using various AI providers. It supports OpenAI, Anthropic, Google’s Gemini, and Cloudflare‘s AI services. The worker can generate summaries in multiple languages and includes features like caching and rate limiting.
+This Cloudflare Worker provides an API endpoint for summarizing web articles using various AI providers. It supports OpenAI, Anthropic, and Cloudflare‘s AI services. The worker can generate summaries in multiple languages and includes features like caching and rate limiting.
 
 ## Features
 
 - Summarizes web articles from allowed domains
-- Supports multiple AI providers (OpenAI, Anthropic, Gemini, Cloudflare AI)
+- Supports multiple AI providers (OpenAI, Anthropic, Cloudflare AI)
 - Generates summaries in multiple languages
 - Caches summaries to reduce API calls and improve response times
 - Implements rate limiting to prevent abuse
@@ -23,7 +23,7 @@ This Cloudflare Worker provides an API endpoint for summarizing web articles usi
 
 The following environment variables need to be set:
 
-- `AI_PROVIDER`: The AI service provider to use (openai, anthropic, gemini, or cloudflare)
+- `AI_PROVIDER`: The AI service provider to use (openai, anthropic, or cloudflare)
 - `AI_MODEL`: The specific AI model to use (e.g., gpt-3.5-turbo for OpenAI)
 - `AI_API_KEY`: Your API key for the chosen AI provider
 - `AI_ENDPOINT`: (Optional) Custom endpoint URL for the AI API
@@ -97,9 +97,9 @@ Used for caching generated summaries.
 3. In your Worker‘s settings, add a D1 Database binding.
 4. Name the binding `DB`.
 
-### AI Worker Binding (Optional, for Cloudflare AI only)
+### AI Worker Binding (MUST, for Cloudflare AI)
 
-If you plan to use Cloudflare AI, you need to set up an AI Worker binding.
+You need to set up an AI Worker binding.
 
 1. Ensure that AI capabilities are enabled for your Cloudflare account.
 2. In your Worker’s settings, add an AI binding.
@@ -167,7 +167,6 @@ The worker supports multiple AI providers:
 
 - OpenAI
 - Anthropic
-- Gemini (Google)
 - Cloudflare AI
 
 ## Long Article Handling

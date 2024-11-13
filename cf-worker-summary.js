@@ -481,8 +481,6 @@ class AIService {
         return 'https://api.openai.com/v1/chat/completions'
       case 'anthropic':
         return 'https://api.anthropic.com/v1/messages'
-      case 'gemini':
-        return 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent'
       default:
         throw new Error(`No default endpoint for provider: ${this.provider}`)
     }
@@ -640,16 +638,6 @@ The summary MUST be:
         },
         headers: { 'anthropic-version': '2023-06-01' },
       },
-      gemini: {
-        body: {
-          contents: messages.map((msg) => ({
-            role: msg.role,
-            parts: [{ text: msg.content }],
-          })),
-          generationConfig: { maxOutputTokens: 1024 },
-        },
-        headers: {},
-      },
     }
 
     const config = apiConfigs[this.provider]
@@ -683,7 +671,6 @@ The summary MUST be:
     const extractors = {
       openai: (data) => data.choices[0].message.content,
       anthropic: (data) => data.content[0].text,
-      gemini: (data) => data.candidates[0].content.parts[0].text,
     }
 
     const extractor = extractors[this.provider]
