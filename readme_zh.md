@@ -10,7 +10,7 @@
 - 缓存摘要以减少 API 调用并提高响应时间
 - 实现速率限制以防止滥用
 - 通过环境变量进行配置
-- 支持长文章的多部分摘要生成
+- 自动截断过长的文章内容
 
 ## 设置
 
@@ -32,11 +32,7 @@
 - `MAX_CONTENT_LENGTH`：允许处理的文章内容的最大长度
 - `SUMMARY_MIN_LENGTH`：生成摘要的最小长度
 - `RATE_LIMIT`：（可选）每小时每 IP 允许的最大请求数
-- `PART_SIZE`：（可选）长文章内容部分的大小（默认：5000）
-- `OVERLAP_SIZE`：（可选）内容部分之间的重叠大小（默认：200）
 - `PROMPT_TEMPLATE`：（可选）AI 请求的自定义提示模板
-- `PART_SUMMARY_PROMPT`：（可选）用于总结长文章各部分的自定义提示
-- `COMBINE_SUMMARIES_PROMPT`：（可选）用于合并多个摘要的自定义提示
 - `JINA_READER_URL`：（可选）Jina 阅读器服务的 URL（默认：https://r.jina.ai）
 
 ### PROMPT_TEMPLATE
@@ -49,16 +45,6 @@
 - 内容要求、表达风格和格式的规则
 - 字数要求（使用 `${SUMMARY_MIN_LENGTH}` 占位符）
 - 处理多个观点、时效性内容以及区分事实和观点的特殊考虑
-
-### PART_SUMMARY_PROMPT
-
-`PART_SUMMARY_PROMPT` 环境变量允许您自定义用于总结长文章各个部分的提示。如果未设置，将使用默认模板。
-
-### COMBINE_SUMMARIES_PROMPT
-
-`COMBINE_SUMMARIES_PROMPT` 环境变量允许您自定义用于合并长文章多个摘要的提示。如果未设置，将使用默认模板。
-
-注意：这些提示模板无法在运行时动态修改。它们必须在部署 worker 之前设置为环境变量。
 
 ## Cloudflare Worker 绑定
 
@@ -173,7 +159,7 @@ worker 支持多个 AI 提供商：
 
 ## 长文章处理
 
-对于超过 `MAX_CONTENT_LENGTH` 的文章，worker 会将内容分成多个部分进行处理。它为每个部分生成摘要，然后将这些摘要组合成最终摘要。
+对于超过 `MAX_CONTENT_LENGTH` 的文章，worker 会自动截取文章的前部分内容进行处理。这确保了处理时间的可预测性和资源使用的合理性。
 
 ## 内容获取
 

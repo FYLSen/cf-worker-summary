@@ -36,11 +36,7 @@ jobs:
           RATE_LIMIT = "${{ secrets.RATE_LIMIT }}"
           MAX_CONTENT_LENGTH = "${{ secrets.MAX_CONTENT_LENGTH }}"
           SUMMARY_MIN_LENGTH = "${{ secrets.SUMMARY_MIN_LENGTH }}"
-          PART_SIZE = "${{ secrets.PART_SIZE }}"
-          OVERLAP_SIZE = "${{ secrets.OVERLAP_SIZE }}"
           #PROMPT_TEMPLATE = "${{ secrets.PROMPT_TEMPLATE }}"
-          #PART_SUMMARY_PROMPT = "${{ secrets.PART_SUMMARY_PROMPT }}"
-          #COMBINE_SUMMARIES_PROMPT = "${{ secrets.COMBINE_SUMMARIES_PROMPT }}"
           [[kv_namespaces]]
           binding = "KV"
           id = "${{ secrets.KV_NAMESPACE_ID }}"

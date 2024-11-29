@@ -10,7 +10,7 @@ This Cloudflare Worker provides an API endpoint for summarizing web articles usi
 - Caches summaries to reduce API calls and improve response times
 - Implements rate limiting to prevent abuse
 - Configurable via environment variables
-- Supports multi-part summarization for long articles
+- Automatically truncates long articles
 
 ## Setup
 
@@ -32,11 +32,7 @@ The following environment variables need to be set:
 - `MAX_CONTENT_LENGTH`: Maximum allowed length of article content to process
 - `SUMMARY_MIN_LENGTH`: Minimum length of generated summaries
 - `RATE_LIMIT`: (Optional) Maximum number of requests allowed per hour per IP
-- `PART_SIZE`: (Optional) Size of content parts for long articles (default: 5000)
-- `OVERLAP_SIZE`: (Optional) Overlap size between content parts (default: 200)
 - `PROMPT_TEMPLATE`: (Optional) Custom prompt template for AI requests
-- `PART_SUMMARY_PROMPT`: (Optional) Custom prompt for summarizing parts of long articles
-- `COMBINE_SUMMARIES_PROMPT`: (Optional) Custom prompt for combining multiple summaries
 - `JINA_READER_URL`: (Optional) URL for the Jina reader service (default: https://r.jina.ai)
 
 ### PROMPT_TEMPLATE
@@ -49,14 +45,6 @@ Key points to include in the template:
 - Rules for content requirements, expression style, and format
 - Word count requirement (use `${SUMMARY_MIN_LENGTH}` placeholder)
 - Special considerations for handling multiple viewpoints, time-sensitive content, and distinguishing between facts and opinions
-
-### PART_SUMMARY_PROMPT
-
-The `PART_SUMMARY_PROMPT` environment variable allows you to customize the prompt used for summarizing individual parts of long articles. If not set, a default template is used.
-
-### COMBINE_SUMMARIES_PROMPT
-
-The `COMBINE_SUMMARIES_PROMPT` environment variable allows you to customize the prompt used for combining multiple summaries of long articles. If not set, a default template is used.
 
 ## Cloudflare Worker Bindings
 
@@ -171,7 +159,7 @@ The worker supports multiple AI providers:
 
 ## Long Article Handling
 
-For articles exceeding the `MAX_CONTENT_LENGTH`, the worker splits the content into multiple parts for processing. It generates summaries for each part and then combines these summaries into a final summary.
+For articles exceeding the `MAX_CONTENT_LENGTH`, the worker automatically truncates the content to the maximum allowed length before processing. This ensures predictable processing times and reasonable resource usage.
 
 ## Content Fetching
 

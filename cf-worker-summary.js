@@ -466,13 +466,8 @@ class AIService {
     this.apiKey = env.AI_API_KEY
     this.apiEndpoint = env.AI_ENDPOINT || this.getDefaultEndpoint()
     this.maxContentLength = env.MAX_CONTENT_LENGTH || 10000
-    this.partSize = env.PART_SIZE || 5000
-    this.overlapSize = env.OVERLAP_SIZE || 200
     this.language = language
     this.promptTemplate = env.PROMPT_TEMPLATE || this.getDefaultPromptTemplate()
-    this.partSummaryPrompt = env.PART_SUMMARY_PROMPT || this.getDefaultPartSummaryPrompt()
-    this.combineSummariesPrompt =
-      env.COMBINE_SUMMARIES_PROMPT || this.getDefaultCombineSummariesPrompt()
   }
 
   getDefaultEndpoint() {
@@ -512,64 +507,11 @@ The summary MUST be:
 - Present information objectively`
   }
 
-  getDefaultPartSummaryPrompt() {
-    return `You are tasked with summarizing a segment of a larger article. 
-
-IMPORTANT: Your output must ONLY contain the summary text itself - no additional formatting or explanations. Prioritize essential information while meeting length requirements.
-
-The summary MUST be:
-
-1. LANGUAGE & FORMAT
-- Written in ${this.language}
-- Keep technical terms, product names, and proper nouns in their original language
-- Delivered as plain text only
-- Length: 100-300 words per segment
-
-2. SEGMENT CONTEXT
-- Mark incomplete concepts with [...] at start/end
-- Track ongoing themes and arguments
-- Note connections to other sections
-
-3. CONTENT FOCUS
-- Extract main ideas and essential details
-- Preserve critical data and quotes
-- Note context-dependent information`
-  }
-
-  getDefaultCombineSummariesPrompt() {
-    return `You are tasked with creating a unified summary from multiple segment summaries. 
-
-IMPORTANT: Your output must ONLY contain the summary text itself - no additional formatting or explanations. Prioritize essential information while meeting length requirements.
-
-The summary MUST be:
-
-1. LANGUAGE & FORMAT
-- Written in ${this.language}
-- Keep technical terms, product names, and proper nouns in their original language
-- Delivered as plain text only
-- Limited to 2-3 paragraphs
-- Minimum length: ${this.env.SUMMARY_MIN_LENGTH} words
-- Strive for conciseness while ensuring comprehensiveness
-
-2. SYNTHESIS REQUIREMENTS
-- Create logical flow across sections
-- Remove redundant information
-- Connect related themes and ideas
-- Ensure balanced coverage of all sections
-
-3. CONTENT INTEGRATION
-- Highlight overarching themes
-- Resolve any cross-references
-- Combine related statistics
-- Maintain consistent terminology`
-  }
-
   async generateSummary(content) {
-    const summary =
-      content.length <= this.maxContentLength
-        ? await this.generateSingleSummary(content)
-        : await this.generateMultiPartSummary(content)
-
+    if (content.length > this.maxContentLength) {
+      content = content.slice(0, this.maxContentLength)
+    }
+    const summary = await this.generateSingleSummary(content)
     return { summary, model: this.model }
   }
 
@@ -578,46 +520,11 @@ The summary MUST be:
     return await this.callExternalAPI(messages)
   }
 
-  async generateMultiPartSummary(content) {
-    const parts = this.splitContent(content)
-    const partSummaries = await Promise.all(parts.map((part) => this.generatePartSummary(part)))
-    return await this.combineSummaries(partSummaries)
-  }
-
   createMessages(content) {
     return [
       { role: 'system', content: this.promptTemplate },
       { role: 'user', content: content },
     ]
-  }
-
-  splitContent(content) {
-    const parts = []
-    let start = 0
-
-    while (start < content.length) {
-      const end = Math.min(start + this.partSize, content.length)
-      parts.push(content.slice(start, end))
-      start = end - this.overlapSize
-    }
-
-    return parts
-  }
-
-  async generatePartSummary(part) {
-    const messages = [
-      { role: 'system', content: this.partSummaryPrompt },
-      { role: 'user', content: part },
-    ]
-    return await this.callExternalAPI(messages)
-  }
-
-  async combineSummaries(summaries) {
-    const messages = [
-      { role: 'system', content: this.combineSummariesPrompt },
-      { role: 'user', content: summaries },
-    ]
-    return await this.callExternalAPI(messages)
   }
 
   async callExternalAPI(messages) {
