@@ -1,11 +1,11 @@
 # AI 网页文章摘要 Cloudflare Worker
 
-这个 Cloudflare Worker 提供了一个 API 端点，用于使用各种 AI 提供商来summarize网络文章。它支持 OpenAI、Anthropic 和 Cloudflare 的 AI 服务。该 worker 可以生成多语言摘要，并包括缓存和速率限制等功能。
+这个 Cloudflare Worker 提供了一个 API 端点，用于使用各种 AI 提供商来summarize网络文章。它支持 OpenAI、Anthropic、Google 和 Cloudflare 的 AI 服务。该 worker 可以生成多语言摘要，并包括缓存和速率限制等功能。
 
 ## 功能
 
 - 摘要化来自允许域名的网络文章
-- 支持多个 AI 提供商（OpenAI、Anthropic、Cloudflare AI）
+- 支持多个 AI 提供商（OpenAI、Anthropic、Google、Cloudflare AI）
 - 生成多语言摘要
 - 缓存摘要以减少 API 调用并提高响应时间
 - 实现速率限制以防止滥用
@@ -23,7 +23,7 @@
 
 需要设置以下环境变量：
 
-- `AI_PROVIDER`：要使用的 AI 服务提供商（openai、anthropic 或 cloudflare）
+- `AI_PROVIDER`：要使用的 AI 服务提供商（openai、anthropic、google 或 cloudflare）
 - `AI_MODEL`：要使用的特定 AI 模型（例如，OpenAI 的 gpt-3.5-turbo）
 - `AI_API_KEY`：您选择的 AI 提供商的 API 密钥
 - `AI_ENDPOINT`：（可选）AI API 的自定义端点 URL
@@ -155,6 +155,7 @@ worker 支持多个 AI 提供商：
 
 - OpenAI
 - Anthropic
+- Google
 - Cloudflare AI
 
 ## 长文章处理

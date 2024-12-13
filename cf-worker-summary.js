@@ -464,10 +464,10 @@ class AIService {
     this.provider = env.AI_PROVIDER
     this.model = env.AI_MODEL
     this.apiKey = env.AI_API_KEY
-    this.apiEndpoint = env.AI_ENDPOINT || this.getDefaultEndpoint()
     this.maxContentLength = env.MAX_CONTENT_LENGTH || 10000
     this.language = language
     this.promptTemplate = env.PROMPT_TEMPLATE || this.getDefaultPromptTemplate()
+    this.apiEndpoint = env.AI_ENDPOINT || this.getDefaultEndpoint()
   }
 
   getDefaultEndpoint() {
@@ -476,6 +476,8 @@ class AIService {
         return 'https://api.openai.com/v1/chat/completions'
       case 'anthropic':
         return 'https://api.anthropic.com/v1/messages'
+      case 'google':
+        return 'https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}'
       default:
         throw new Error(`No default endpoint for provider: ${this.provider}`)
     }
@@ -521,6 +523,10 @@ The summary MUST be:
   }
 
   createMessages(content) {
+    if (this.provider === 'google') {
+      return { system_instruction: { parts: { text: this.promptTemplate }},
+               contents: { parts: { text: content }}}
+    }
     return [
       { role: 'system', content: this.promptTemplate },
       { role: 'user', content: content },
@@ -544,6 +550,13 @@ The summary MUST be:
           max_tokens: 1024,
         },
         headers: { 'anthropic-version': '2023-06-01' },
+      },
+      google: {
+        body: {
+          messages,
+          generationConfig: { maxOutputTokens: 1024 },
+        },
+        headers: {},
       },
     }
 
@@ -578,6 +591,7 @@ The summary MUST be:
     const extractors = {
       openai: (data) => data.choices[0].message.content,
       anthropic: (data) => data.content[0].text,
+      google: (data) => data.candidates[0].content.parts[0].text,
     }
 
     const extractor = extractors[this.provider]

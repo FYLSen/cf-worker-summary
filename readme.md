@@ -5,7 +5,7 @@ This Cloudflare Worker provides an API endpoint for summarizing web articles usi
 ## Features
 
 - Summarizes web articles from allowed domains
-- Supports multiple AI providers (OpenAI, Anthropic, Cloudflare AI)
+- Supports multiple AI providers (OpenAI, Anthropic, Google, Cloudflare AI)
 - Generates summaries in multiple languages
 - Caches summaries to reduce API calls and improve response times
 - Implements rate limiting to prevent abuse
@@ -23,7 +23,7 @@ This Cloudflare Worker provides an API endpoint for summarizing web articles usi
 
 The following environment variables need to be set:
 
-- `AI_PROVIDER`: The AI service provider to use (openai, anthropic, or cloudflare)
+- `AI_PROVIDER`: The AI service provider to use (openai, anthropic, google, or cloudflare)
 - `AI_MODEL`: The specific AI model to use (e.g., gpt-3.5-turbo for OpenAI)
 - `AI_API_KEY`: Your API key for the chosen AI provider
 - `AI_ENDPOINT`: (Optional) Custom endpoint URL for the AI API
@@ -155,6 +155,7 @@ The worker supports multiple AI providers:
 
 - OpenAI
 - Anthropic
+- Google
 - Cloudflare AI
 
 ## Long Article Handling
