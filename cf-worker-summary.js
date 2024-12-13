@@ -477,7 +477,7 @@ class AIService {
       case 'anthropic':
         return 'https://api.anthropic.com/v1/messages'
       case 'google':
-        return 'https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}'
+        return `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`
       default:
         throw new Error(`No default endpoint for provider: ${this.provider}`)
     }
